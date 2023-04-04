@@ -25,7 +25,8 @@ def rasterizacao_delta_x_maior_delta_y(ponto1: Ponto, m, b, x2) -> list:
     pontos.append(produz_fragmento(ponto1.x, ponto1.y))
     while (ponto1.x < x2):
         ponto1.x += 1
-        ponto1.y = m*ponto1.x + b
+        if (m != 0):
+            ponto1.y = m*ponto1.x + b
         pontos.append(produz_fragmento(ponto1.x, ponto1.y))
     return pontos
 
