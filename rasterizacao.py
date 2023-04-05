@@ -1,11 +1,22 @@
 import math
 import matplotlib.pyplot as plt
+import numpy as np
+
+altura, largura = 100, 100
 
 
 class Ponto:
     def __init__(self, x: int, y: int) -> None:
-        self.x = x
-        self.y = y
+        self.x, self.y = self.scale_point(x, y, largura, altura)
+
+    def scale_point(self, x, y, largura, altura):
+        # Distância entre as coordenadas máxima e mínima para x
+        x_dist = 1 - (-1)
+        # Distância entre as coordenadas máxima e mínima para y
+        y_dist = 1 - (-1)
+        scaled_x = ((x / x_dist) + 0.5) * largura
+        scaled_y = (1 - ((y / y_dist) + 0.5)) * altura
+        return [round(scaled_x), round(scaled_y)]
 
 
 def calula_delta(ponto_final: int, ponto_inicial: int) -> float:
@@ -13,21 +24,22 @@ def calula_delta(ponto_final: int, ponto_inicial: int) -> float:
 
 
 def produz_fragmento(x: float, y: float) -> list:
-    x_medio = math.floor(x)
-    y_medio = math.floor(y)
-    ponto_x_medio = x_medio+0.5
-    ponto_y_medio = y_medio+0.5
+    x_medio = (x)
+    y_medio = y
+    ponto_x_medio = math.floor(x_medio+0.5)
+    ponto_y_medio = math.floor(y_medio+0.5)
     return [ponto_x_medio, ponto_y_medio]
 
 
 def rasterizacao_delta_x_maior_delta_y(ponto1: Ponto, m, b, x2) -> list:
+    x1,  y1 = ponto1.x,  ponto1.y
     pontos: list = []
-    pontos.append(produz_fragmento(ponto1.x, ponto1.y))
-    while (ponto1.x < x2):
-        ponto1.x += 1
+    pontos.append(produz_fragmento(x1, y1))
+    while (x1 < x2):
+        x1 = x1 + 1
         if (m != 0):
-            ponto1.y = m*ponto1.x + b
-        pontos.append(produz_fragmento(ponto1.x, ponto1.y))
+            y1 = m*x1 + b
+        pontos.append(produz_fragmento(x1, y1))
     return pontos
 
 
@@ -49,10 +61,8 @@ def rasterizacao_delta_y_maior_delta_x(ponto1: Ponto, m, b, ponto2: Ponto) -> li
 def rasterizacao_de_retas(ponto1: Ponto, ponto2: Ponto) -> None:
     primeiro_ponto, segundo_ponto = ponto1, ponto2
     pontos: list
-    # lista dos pontos para serem exibidas no grafico
-    eixo_x: list = []
-    eixo_y: list = []
-    if (ponto2.y < ponto1.y or ponto2.x < ponto1.y):
+
+    if (ponto2.y < ponto1.y):
         primeiro_ponto, segundo_ponto = segundo_ponto, primeiro_ponto
 
     x = primeiro_ponto.x
@@ -72,19 +82,66 @@ def rasterizacao_de_retas(ponto1: Ponto, ponto2: Ponto) -> None:
         b = (y-m)*x
         pontos = rasterizacao_delta_y_maior_delta_x(
             primeiro_ponto, m, b, segundo_ponto)
-    print(pontos)
-    # pontos.reverse()
+
+    return pontos
+
+
+todos_os_pontos = []
+
+# PONTOS DO TRIANGULO
+# BASE
+primeiro_ponto = Ponto(-1, -1)
+segundo_ponto = Ponto(1, -1)
+# # reta vertical
+r2_ponto1 = Ponto(1, -1)
+r2_ponto2 = Ponto(0, 1)
+r3_ponto1 = Ponto(0, 1)
+r3_ponto2 = Ponto(-1, -1)
+
+# PONTOS DO QUADRADO
+#primeira aresta
+quadrado_ponto1 = Ponto(-1, -1)
+quadrado_ponto2 = Ponto(1, -1)
+quadrado_ponto3 = Ponto(1, 1)
+quadrado_ponto4 = Ponto(-1, 1)
+#segunda aresta
+#terceira aresta
+
+
+
+
+#rasterização do triangulo
+todos_os_pontos.append(
+    rasterizacao_de_retas(primeiro_ponto, segundo_ponto))
+todos_os_pontos.append(
+    rasterizacao_de_retas(r2_ponto1, r2_ponto2))
+todos_os_pontos.append(
+    rasterizacao_de_retas(r3_ponto1, r3_ponto2))
+
+
+#rasterizacao do quadrado
+todos_os_pontos.append(
+    rasterizacao_de_retas(quadrado_ponto1, quadrado_ponto2))
+todos_os_pontos.append(
+    rasterizacao_de_retas(quadrado_ponto2, quadrado_ponto3))
+todos_os_pontos.append(
+    rasterizacao_de_retas(quadrado_ponto3, quadrado_ponto4))
+todos_os_pontos.append(
+    rasterizacao_de_retas(quadrado_ponto3, quadrado_ponto1))
+
+
+
+imag = np.zeros((altura, largura, 3), dtype=np.uint8)
+for pontos in todos_os_pontos:
+    eixo_x = []
+    eixo_y = []
     print(pontos)
     for ponto in pontos:
-        eixo_x.append(ponto[0])
-        eixo_y.append(ponto[1])
-    plt.ylabel('Eixo Y')
-    plt.xlabel('Eixo X')
+        lista = tuple(ponto)
+        # imag[int(lista[0]), int(lista[1])] = [255, 0, 0]
+        eixo_x.append(int(ponto[0]))
+        eixo_y.append(int(ponto[1]))
+    # print(eixo_y)
     plt.plot(eixo_x, eixo_y)
-    plt.show()
-
-
-primeiro_ponto = Ponto(9, 3)
-segundo_ponto = Ponto(0, 3)
-
-rasterizacao_de_retas(primeiro_ponto, segundo_ponto)
+# plt.imshow(imag)
+plt.show()
