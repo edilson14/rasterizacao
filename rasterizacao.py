@@ -2,15 +2,19 @@ import math
 import matplotlib.pyplot as plt
 import numpy as np
 
-altura, largura = 100, 100
+largura, altura = 100, 100
+resolucao1 = largura, altura
+resolucao2 = largura*3, altura*3
+resolucao3 = largura*6, altura*6
+resolucao4 = largura*8, altura*6
+resolucao5 = int(altura*19.2), int(altura*10.8)
 
 
 class Ponto:
-    def __init__(self, x: int, y: int) -> None:
-        self.x, self.y = self.scale_point(x, y, largura, altura)
+    def __init__(self, x: int, y: int, resolucao: list) -> None:
+        self.x, self.y = self.scale_point(x, y, resolucao[0], resolucao[1])
 
     def scale_point(self, x, y, largura, altura):
-        # Distância entre as coordenadas máxima e mínima para x
         x_dist = 1 - (-1)
         # Distância entre as coordenadas máxima e mínima para y
         y_dist = 1 - (-1)
@@ -43,7 +47,7 @@ def rasterizacao_delta_x_maior_delta_y(ponto1: Ponto, m, b, x2) -> list:
             pontos.append(produz_fragmento(x1, y1))
     else:
         aux = x1
-        while (x2 <= aux):
+        while (x2 < aux):
             x2 = x2 + 1
             x1 = x1-1
             if (m != 0):
@@ -57,14 +61,14 @@ def rasterizacao_delta_y_maior_delta_x(ponto1: Ponto, m, b, ponto2: Ponto) -> li
 
     pontos: list = []
     if (y1 < y2):
-        while (y1 <= y2):
+        while (y1 < y2):
             pontos.append(produz_fragmento(x1, y1))
             y1 = y1 + 1
             if (m != 0):
                 x1 = ((y1-b)/m)
     else:
         aux = y1
-        while y2 <= aux:
+        while y2 < aux:
             pontos.append(produz_fragmento(x1, y1))
             y2 = y2 + 1
             y1 = y1 - 1
@@ -100,77 +104,65 @@ def rasterizacao_de_retas(ponto1: Ponto, ponto2: Ponto) -> None:
     return pontos
 
 
-todos_os_pontos = []
-
-# PONTOS DO TRIANGULO
-tri_ponto1 = Ponto(-0.5, -0.87)
-tri_ponto2 = Ponto(0.5, -0.87)
-tri_ponto3 = Ponto(0, 0.73)
-
-tri2_ponto1 = Ponto(-1, 0)
-tri2_ponto2 = Ponto(0, 0.73)
-tri2_ponto3 = Ponto(1, 0)
-
-# PONTOS DO QUADRADO
-# primeira aresta
-quadrado_ponto1 = Ponto(-1, -1)
-quadrado_ponto2 = Ponto(-1, 1)
-quadrado_ponto3 = Ponto(1, 1)
-quadrado_ponto4 = Ponto(1, -1)
-# segunda aresta
-# terceira aresta
+def triangulo(tri_ponto1, tri_ponto2, tri_ponto3, resolucao):
+    pontos = []
+    tri_ponto1 = Ponto(tri_ponto1[0], tri_ponto1[1], resolucao)
+    tri_ponto2 = Ponto(tri_ponto2[0], tri_ponto2[1], resolucao)
+    tri_ponto3 = Ponto(tri_ponto3[0], tri_ponto3[1], resolucao)
+    pontos.append(rasterizacao_de_retas(tri_ponto1, tri_ponto2))
+    pontos.append(rasterizacao_de_retas(tri_ponto2, tri_ponto3))
+    pontos.append(rasterizacao_de_retas(tri_ponto3, tri_ponto1))
+    return pontos
 
 
-# HEXAGONO
-
-hex_ponto1 = Ponto(-0.5, -0.87)
-hex_ponto2 = Ponto(-1, 0)
-hex_ponto3 = Ponto(-0.5, 0.87)
-hex_ponto4 = Ponto(0.5, 0.87)
-hex_ponto5 = Ponto(1, 0)
-hex_ponto6 = Ponto(0.5, -0.87)
-
-# rasterização do triangulo
-# todos_os_pontos.append(
-#     rasterizacao_de_retas(tri_ponto1, tri_ponto2))
-# todos_os_pontos.append(
-#     rasterizacao_de_retas(tri_ponto2, tri_ponto3))
-# todos_os_pontos.append(
-#     rasterizacao_de_retas(tri_ponto3, tri_ponto1))
-
-# # rasterização do triangulo
+# criar uma imagem com os pontos e uma resolução desejada
 
 
-# # rasterizacao do quadrado
-# todos_os_pontos.append(
-#     rasterizacao_de_retas(quadrado_ponto1, quadrado_ponto2))
-# todos_os_pontos.append(
-#     rasterizacao_de_retas(quadrado_ponto2, quadrado_ponto3))
-# todos_os_pontos.append(
-#     rasterizacao_de_retas(quadrado_ponto3, quadrado_ponto4))
-# todos_os_pontos.append(
-#     rasterizacao_de_retas(quadrado_ponto4, quadrado_ponto1))
-
-# rasterização de hexagono
-todos_os_pontos.append(rasterizacao_de_retas(hex_ponto1, hex_ponto2))
-todos_os_pontos.append(rasterizacao_de_retas(hex_ponto2, hex_ponto3))
-todos_os_pontos.append(rasterizacao_de_retas(hex_ponto3, hex_ponto4))
-todos_os_pontos.append(rasterizacao_de_retas(hex_ponto4, hex_ponto5))
-todos_os_pontos.append(rasterizacao_de_retas(hex_ponto5, hex_ponto6))
-todos_os_pontos.append(rasterizacao_de_retas(hex_ponto6, hex_ponto1))
+def criar_imagem(todos_os_pontos, resolucao) -> any:
+    imag = np.zeros((resolucao[0], resolucao[1], 3), dtype=np.uint8)
+    for pontos in todos_os_pontos:
+        eixo_x = []
+        eixo_y = []
+        for ponto in pontos:
+            eixo_x.append(int(ponto[0]))
+            eixo_y.append(int(ponto[1]))
+        imag[eixo_y,eixo_x] += 1
+        imag[eixo_y, eixo_x] = [255, 0, 0]
+    return imag
 
 
-imag = np.zeros((altura, largura, 3), dtype=np.uint8)
-for pontos in todos_os_pontos:
-    eixo_x = []
-    eixo_y = []
-    print(pontos)
-    for ponto in pontos:
-        lista = tuple(ponto)
-        # imag[int(lista[0]), int(lista[1])] = [255, 0, 0]
-        eixo_x.append(int(ponto[0]))
-        eixo_y.append(int(ponto[1]))
-    # print(eixo_y)
-    plt.plot(eixo_x, eixo_y)
-# plt.imshow(imag)
+tri_ponto1 = (-0.5, -0.87)
+tri_ponto2 = (0.5, -0.87)
+tri_ponto3 = (0, 0.73)
+
+
+Image1 = criar_imagem(triangulo(tri_ponto1, tri_ponto2,
+                                tri_ponto3, resolucao1), resolucao1)
+Image2 = criar_imagem(triangulo(tri_ponto1, tri_ponto2,
+                                tri_ponto3, resolucao2), resolucao2)
+Image3 = criar_imagem(triangulo(tri_ponto1, tri_ponto2,
+                                tri_ponto3, resolucao3), resolucao3)
+
+
+fig = plt.figure(figsize=(10, 7))
+rows = 1
+columns = 3
+
+
+fig.add_subplot(rows, columns, 1)
+plt.imshow(Image1)
+plt.axis('off')
+plt.title("100x100")
+
+fig.add_subplot(rows, columns, 2)
+plt.imshow(Image2)
+plt.axis('off')
+plt.title("300x300")
+
+fig.add_subplot(rows, columns, 3)
+plt.imshow(Image3)
+plt.axis('off')
+plt.title("600x600")
+plt.show()
+
 plt.show()
