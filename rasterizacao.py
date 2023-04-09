@@ -104,27 +104,6 @@ def rasterizacao_de_retas(ponto1: Ponto, ponto2: Ponto) -> None:
     return pontos
 
 
-# criar uma imagem com os pontos e uma resolução desejada
-
-def criar_imagem(todos_os_pontos, resolucao, cor=True, interno=False) -> any:
-    imag = np.zeros((resolucao[0], resolucao[1], 3), dtype=np.uint8)
-    for pontos in todos_os_pontos:
-        eixo_x = []
-        eixo_y = []
-        if (not interno):
-            for ponto in pontos:
-                eixo_x.append(int(ponto[0]))
-                eixo_y.append(int(ponto[1]))
-        else:
-            eixo_x.append(pontos[0])
-            eixo_y.append(pontos[1])
-        if cor:
-            imag[eixo_y, eixo_x] = [255, 0, 0]
-        else:
-            imag[eixo_y, eixo_x] = 1
-    return imag
-
-
 def rasteriza_poligno(poligno):
     largura, altura = poligno.shape[:2]
     pontos_internos = []
@@ -154,7 +133,7 @@ pontosImagem1 = rasterizacao_de_retas(
 # pontosImagem1.extend(pontosInternos)
 
 
-Image1 = criar_imagem(pontosImagem1, resolucao1, True, True)
+Image1 = criar_imagem_reta(pontosImagem1, resolucao1)
 
 # print(Image1[5, 2])
 
