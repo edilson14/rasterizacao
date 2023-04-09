@@ -40,14 +40,14 @@ def rasterizacao_delta_x_maior_delta_y(ponto1: Ponto, m, b, x2) -> list:
     pontos: list = []
     pontos.append(produz_fragmento(x1, y1))
     if (x1 < x2):
-        while (x1 < x2):
+        while (x1 <= x2):
             x1 = x1 + 1
             if (m != 0):
                 y1 = math.ceil(m*x1 + b)
             pontos.append(produz_fragmento(x1, y1))
     else:
         aux = x1
-        while (x2 < aux):
+        while (x2 <= aux):
             x2 = x2 + 1
             x1 = x1-1
             if (m != 0):
@@ -61,14 +61,14 @@ def rasterizacao_delta_y_maior_delta_x(ponto1: Ponto, m, b, ponto2: Ponto) -> li
 
     pontos: list = []
     if (y1 < y2):
-        while (y1 < y2):
+        while (y1 <= y2):
             pontos.append(produz_fragmento(x1, y1))
             y1 = y1 + 1
             if (m != 0):
                 x1 = ((y1-b)/m)
     else:
         aux = y1
-        while y2 < aux:
+        while y2 <= aux:
             pontos.append(produz_fragmento(x1, y1))
             y2 = y2 + 1
             y1 = y1 - 1
@@ -104,31 +104,43 @@ def rasterizacao_de_retas(ponto1: Ponto, ponto2: Ponto) -> None:
     return pontos
 
 
-def triangulo(tri_ponto1, tri_ponto2, tri_ponto3, resolucao):
-    pontos = []
-    tri_ponto1 = Ponto(tri_ponto1[0], tri_ponto1[1], resolucao)
-    tri_ponto2 = Ponto(tri_ponto2[0], tri_ponto2[1], resolucao)
-    tri_ponto3 = Ponto(tri_ponto3[0], tri_ponto3[1], resolucao)
-    pontos.append(rasterizacao_de_retas(tri_ponto1, tri_ponto2))
-    pontos.append(rasterizacao_de_retas(tri_ponto2, tri_ponto3))
-    pontos.append(rasterizacao_de_retas(tri_ponto3, tri_ponto1))
-    return pontos
-
-
 # criar uma imagem com os pontos e uma resolução desejada
 
-
-def criar_imagem(todos_os_pontos, resolucao) -> any:
+def criar_imagem(todos_os_pontos, resolucao, cor=True, interno=False) -> any:
     imag = np.zeros((resolucao[0], resolucao[1], 3), dtype=np.uint8)
     for pontos in todos_os_pontos:
         eixo_x = []
         eixo_y = []
-        for ponto in pontos:
-            eixo_x.append(int(ponto[0]))
-            eixo_y.append(int(ponto[1]))
-        imag[eixo_y,eixo_x] += 1
-        imag[eixo_y, eixo_x] = [255, 0, 0]
+        if (not interno):
+            for ponto in pontos:
+                eixo_x.append(int(ponto[0]))
+                eixo_y.append(int(ponto[1]))
+        else:
+            eixo_x.append(pontos[0])
+            eixo_y.append(pontos[1])
+        if cor:
+            imag[eixo_y, eixo_x] = [255, 0, 0]
+        else:
+            imag[eixo_y, eixo_x] = 1
     return imag
+
+
+def rasteriza_poligno(poligno):
+    largura, altura = poligno.shape[:2]
+    pontos_internos = []
+    for i in range(largura):
+        count = 0
+        aux = []
+        for j in range(altura):
+            if np.array_equal(poligno[i, j], [1, 1, 1]):
+                count += 1
+                if count == 1:
+                    aux.append(j)
+        if count % 2 == 1:
+            for k in range(0, len(aux), 2):
+                for j in range(aux[k], aux[k+1]+1 if k+1 < len(aux) else altura):
+                    pontos_internos.append([i, j])
+    return pontos_internos
 
 
 tri_ponto1 = (-0.5, -0.87)
@@ -136,13 +148,24 @@ tri_ponto2 = (0.5, -0.87)
 tri_ponto3 = (0, 0.73)
 
 
-Image1 = criar_imagem(triangulo(tri_ponto1, tri_ponto2,
-                                tri_ponto3, resolucao1), resolucao1)
-Image2 = criar_imagem(triangulo(tri_ponto1, tri_ponto2,
-                                tri_ponto3, resolucao2), resolucao2)
-Image3 = criar_imagem(triangulo(tri_ponto1, tri_ponto2,
-                                tri_ponto3, resolucao3), resolucao3)
+pontosImagem1 = rasterizacao_de_retas(
+    Ponto(-0.5, 0.87, resolucao1), Ponto(-0.5, -0.87, resolucao1))
 
+# pontosImagem1.extend(pontosInternos)
+
+
+Image1 = criar_imagem(pontosImagem1, resolucao1, True, True)
+
+# print(Image1[5, 2])
+
+# Image2 = criar_imagem(pontosImagem2, resolucao2, False)
+# Image3 = criar_imagem(pontosImagem3, resolucao4, True)
+# Image3_3 = criar_imagem(pontosImagem3, resolucao4, False)
+
+# for pontos in pontosInternos:
+#         print(pontos)
+#         Image1[pontos[1],pontos[0]] = [255,255,255]
+# for ponto in pontos:
 
 fig = plt.figure(figsize=(10, 7))
 rows = 1
@@ -154,15 +177,15 @@ plt.imshow(Image1)
 plt.axis('off')
 plt.title("100x100")
 
-fig.add_subplot(rows, columns, 2)
-plt.imshow(Image2)
-plt.axis('off')
-plt.title("300x300")
+# fig.add_subplot(rows, columns, 2)
+# plt.imshow(Image2)
+# plt.axis('off')
+# plt.title("300x300")
 
-fig.add_subplot(rows, columns, 3)
-plt.imshow(Image3)
-plt.axis('off')
-plt.title("600x600")
-plt.show()
+# fig.add_subplot(rows, columns, 3)
+# plt.imshow(Image3)
+# plt.axis('off')
+# plt.title("600x600")
+
 
 plt.show()
