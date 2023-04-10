@@ -1,9 +1,11 @@
-import rasterizacao
-import numpy as np
-import matplotlib.pyplot as plt
+# import rasterizacao
+# import numpy as np
+# import matplotlib.pyplot as plt
+
+from rasterizacao import Ponto, rasterizacao_de_retas
 
 
-ponto = rasterizacao
+# ponto = rasterizacao
 # Resoluções
 
 altura, largura = 100, 100
@@ -62,10 +64,10 @@ hex_ponto6 = (0.5, -0.87)
 
 def triangulo(tri_ponto1, tri_ponto2, tri_ponto3, resolucao):
     pontos = []
-    tri_ponto1 = rasterizacao.Ponto(tri_ponto1[0], tri_ponto1[1], resolucao)
-    tri_ponto2 = rasterizacao.Ponto(tri_ponto2[0], tri_ponto2[1], resolucao)
-    tri_ponto3 = rasterizacao.Ponto(tri_ponto3[0], tri_ponto3[1], resolucao)
-    pontos.append(rasterizacao.rasterizacao_de_retas(tri_ponto1, tri_ponto2))
-    pontos.append(rasterizacao.rasterizacao_de_retas(tri_ponto2, tri_ponto3))
-    pontos.append(rasterizacao.rasterizacao_de_retas(tri_ponto3, tri_ponto1))
+    tri_ponto1 = Ponto(tri_ponto1[0], tri_ponto1[1], resolucao)
+    tri_ponto2 = Ponto(tri_ponto2[0], tri_ponto2[1], resolucao)
+    tri_ponto3 = Ponto(tri_ponto3[0], tri_ponto3[1], resolucao)
+    pontos.append(rasterizacao_de_retas(tri_ponto1, tri_ponto2))
+    pontos.append(rasterizacao_de_retas(tri_ponto2, tri_ponto3))
+    pontos.append(rasterizacao_de_retas(tri_ponto3, tri_ponto1))
     return pontos

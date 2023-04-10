@@ -1,7 +1,8 @@
 import math
 import matplotlib.pyplot as plt
-import imagem as forms
-# import numpy as np
+import numpy as np
+import imagem
+
 
 largura, altura = 100, 100
 resolucao1 = largura, altura
@@ -105,27 +106,20 @@ def rasterizacao_de_retas(ponto1: Ponto, ponto2: Ponto) -> None:
     return pontos
 
 
-def rasteriza_poligno(poligno):
-    largura, altura = poligno.shape[:2]
-    pontos_internos = []
-    for i in range(largura):
-        count = 0
-        aux = []
-        for j in range(altura):
-            if np.array_equal(poligno[i, j], [1, 1, 1]):
-                count += 1
-                if count == 1:
-                    aux.append(j)
-        if count % 2 == 1:
-            for k in range(0, len(aux), 2):
-                for j in range(aux[k], aux[k+1]+1 if k+1 < len(aux) else altura):
-                    pontos_internos.append([i, j])
-    return pontos_internos
+def triangulo(tri_ponto1, tri_ponto2, tri_ponto3, resolucao):
+    pontos = []
+    tri_ponto1 = Ponto(tri_ponto1[0], tri_ponto1[1], resolucao)
+    tri_ponto2 = Ponto(tri_ponto2[0], tri_ponto2[1], resolucao)
+    tri_ponto3 = Ponto(tri_ponto3[0], tri_ponto3[1], resolucao)
+    pontos.append(rasterizacao_de_retas(tri_ponto1, tri_ponto2))
+    pontos.append(rasterizacao_de_retas(tri_ponto2, tri_ponto3))
+    pontos.append(rasterizacao_de_retas(tri_ponto3, tri_ponto1))
+    return pontos
 
 
 tri_ponto1 = (-0.5, -0.87)
 tri_ponto2 = (0.5, -0.87)
-tri_ponto3 = (0, 0.73)
+tri_ponto3 = (0, 0.87)
 
 
 def triangulo(tri_ponto1, tri_ponto2, tri_ponto3, resolucao):
@@ -139,23 +133,84 @@ def triangulo(tri_ponto1, tri_ponto2, tri_ponto3, resolucao):
     return pontos
 
 
-pontosImagem1 = triangulo(tri_ponto1,tri_ponto2,tri_ponto3,resolucao4) 
+def rasteriza_poligno(arestas, largura, altura):
+    img_face_orig = np.zeros((largura, altura, 3), dtype="uint8")
+    img_face = np.zeros((largura, altura, 3), dtype="uint8")
 
-# pontosImagem1.extend(pontosInternos)
+    for aresta in arestas:
+        for ponto in aresta:
+            img_face_orig[ponto[0], ponto[1]] = [1, 1, 1]
+
+    for i in range(altura):
+        cont_h = 0
+        sava_ponto_h = []
+        cont_v = 0
+        sava_ponto_v = []
+        for j in range(largura - 1):
+            # Horizontal
+            if np.array_equal(img_face_orig[j, i], [1, 1, 1]):
+                cont_h += 1
+                if len(sava_ponto_h) > 1:
+                    del sava_ponto_h[0]
+                sava_ponto_h.append([j, i])
+            if cont_h == 2:
+                variacao_h = abs(sava_ponto_h[1][1] - sava_ponto_h[0][1])
+                for w in range(variacao_h):
+                    img_face[i, w + sava_ponto_h[0][1]] = [255, 255, 255]
+                cont_h = 1
+
+            # Vertical
+            if np.array_equal(img_face_orig[j, i], [1, 1, 1]):
+                cont_v += 1
+                if len(sava_ponto_v) > 1:
+                    del sava_ponto_v[0]
+                sava_ponto_v.append([j, i])
+            if cont_v == 2:
+                variacao_v = sava_ponto_v[1][0] - sava_ponto_v[0][0]
+                for z in range(variacao_v):
+                    img_face[z + sava_ponto_v[0][0], i] = [255, 255, 255]
+                cont_v = 1
+
+    arestas_rasterizadas = []
+    for i in range(altura):
+        for j in range(largura-1):
+            if np.array_equal(img_face[j, i], img_face_orig[j, i]):
+                continue
+
+            if np.array_equal(img_face[j, i], [255, 255, 255]):
+                arestas_rasterizadas.append([j, i])
+
+    return arestas_rasterizadas
 
 
-Image1 = forms.Imagem.criar_imagem_geometrica(pontosImagem1, resolucao4)
+pontosTriangulo1 = triangulo(tri_ponto1, tri_ponto2, tri_ponto3, resolucao3)
+Image1 = imagem.Imagem.criar_imagem_geometrica(pontosTriangulo1, resolucao3)
 
-# print(Image1[5, 2])
+pontos_internos = rasteriza_poligno(
+    pontosTriangulo1, resolucao3[0], resolucao3[1])
 
-# Image2 = criar_imagem(pontosImagem2, resolucao2, False)
-# Image3 = criar_imagem(pontosImagem3, resolucao4, True)
-# Image3_3 = criar_imagem(pontosImagem3, resolucao4, False)
+for ponto in pontos_internos:
+    Image1[ponto[1], ponto[0]] = [255, 0, 0]
 
-for pontos in pontosInternos:
-        print(pontos)
-        Image1[pontos[1],pontos[0]] = [255,255,255]
-# for ponto in pontos:
+
+pontosTriangulo2 = triangulo(tri_ponto1, tri_ponto2, tri_ponto3, resolucao4)
+Image2 = imagem.Imagem.criar_imagem_geometrica(pontosTriangulo2, resolucao4)
+
+pontos_internos = rasteriza_poligno(
+    pontosTriangulo2, resolucao4[0], resolucao4[1])
+
+for ponto in pontos_internos:
+    Image2[ponto[1], ponto[0]] = [255, 0, 0]
+
+pontosTriangulo3 = triangulo(tri_ponto1, tri_ponto2, tri_ponto3, resolucao5)
+Image3 = imagem.Imagem.criar_imagem_geometrica(pontosTriangulo3, resolucao5)
+
+pontos_internos = rasteriza_poligno(
+    pontosTriangulo3, resolucao5[0], resolucao5[1])
+
+for ponto in pontos_internos:
+    Image3[ponto[1], ponto[0]] = [255, 0, 0]
+
 
 fig = plt.figure(figsize=(10, 7))
 rows = 1
@@ -167,15 +222,15 @@ plt.imshow(Image1)
 plt.axis('off')
 plt.title("100x100")
 
-# fig.add_subplot(rows, columns, 2)
-# plt.imshow(Image2)
-# plt.axis('off')
-# plt.title("300x300")
+fig.add_subplot(rows, columns, 2)
+plt.imshow(Image2)
+plt.axis('off')
+plt.title("300x300")
 
-# fig.add_subplot(rows, columns, 3)
-# plt.imshow(Image3)
-# plt.axis('off')
-# plt.title("600x600")
+fig.add_subplot(rows, columns, 3)
+plt.imshow(Image3)
+plt.axis('off')
+plt.title("600x600")
 
 
 plt.show()
