@@ -1,6 +1,7 @@
 import math
 import matplotlib.pyplot as plt
-import numpy as np
+import imagem as forms
+# import numpy as np
 
 largura, altura = 100, 100
 resolucao1 = largura, altura
@@ -127,13 +128,23 @@ tri_ponto2 = (0.5, -0.87)
 tri_ponto3 = (0, 0.73)
 
 
-pontosImagem1 = rasterizacao_de_retas(
-    Ponto(-0.5, 0.87, resolucao1), Ponto(-0.5, -0.87, resolucao1))
+def triangulo(tri_ponto1, tri_ponto2, tri_ponto3, resolucao):
+    pontos = []
+    tri_ponto1 = Ponto(tri_ponto1[0], tri_ponto1[1], resolucao)
+    tri_ponto2 = Ponto(tri_ponto2[0], tri_ponto2[1], resolucao)
+    tri_ponto3 = Ponto(tri_ponto3[0], tri_ponto3[1], resolucao)
+    pontos.append(rasterizacao_de_retas(tri_ponto1, tri_ponto2))
+    pontos.append(rasterizacao_de_retas(tri_ponto2, tri_ponto3))
+    pontos.append(rasterizacao_de_retas(tri_ponto3, tri_ponto1))
+    return pontos
+
+
+pontosImagem1 = triangulo(tri_ponto1,tri_ponto2,tri_ponto3,resolucao4) 
 
 # pontosImagem1.extend(pontosInternos)
 
 
-Image1 = criar_imagem_reta(pontosImagem1, resolucao1)
+Image1 = forms.Imagem.criar_imagem_geometrica(pontosImagem1, resolucao4)
 
 # print(Image1[5, 2])
 
@@ -141,9 +152,9 @@ Image1 = criar_imagem_reta(pontosImagem1, resolucao1)
 # Image3 = criar_imagem(pontosImagem3, resolucao4, True)
 # Image3_3 = criar_imagem(pontosImagem3, resolucao4, False)
 
-# for pontos in pontosInternos:
-#         print(pontos)
-#         Image1[pontos[1],pontos[0]] = [255,255,255]
+for pontos in pontosInternos:
+        print(pontos)
+        Image1[pontos[1],pontos[0]] = [255,255,255]
 # for ponto in pontos:
 
 fig = plt.figure(figsize=(10, 7))
